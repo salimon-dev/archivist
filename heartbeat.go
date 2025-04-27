@@ -16,7 +16,7 @@ type heartBeatResponse struct {
 
 func HeartBeatHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, heartBeatResponse{
-		Name:        "tina core",
+		Name:        "archivist core",
 		Environment: os.Getenv("ENV"),
 		Time:        time.Now().Unix(),
 	})

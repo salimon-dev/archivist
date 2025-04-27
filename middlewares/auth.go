@@ -52,6 +52,7 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			fmt.Println(err)
 			return helpers.UnauthorizedError(ctx)
 		}
+		fmt.Printf("user %s fetched from nexus\n", claims.UserID)
 		user = &types.User{
 			Id:           uuid.New(),
 			Network:      "official",
@@ -69,10 +70,8 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return helpers.UnauthorizedError(ctx)
 		}
 
+		fmt.Printf("user %s imported\n", claims.UserID)
 		ctx.Set("user", user)
-
-		// return helpers.UnauthorizedError(ctx)
 		return next(ctx)
-
 	}
 }
