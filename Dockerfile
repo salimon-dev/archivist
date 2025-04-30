@@ -1,6 +1,7 @@
 FROM golang:alpine AS builder
 WORKDIR /app
 COPY . /app
+RUN go mod tidy
 RUN go build -o bootstrap .
 
 FROM gcr.io/distroless/base
