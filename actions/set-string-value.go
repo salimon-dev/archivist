@@ -1,42 +1,76 @@
 package actions
 
 import (
-	"encoding/json"
-	"errors"
+	"salimon/archivist/db"
 	"salimon/archivist/types"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/salimon-dev/gomsg"
 )
 
-func HandleSetStringValueAction(request types.ActionRequest) (*types.Message, error) {
-	if request.Type != "setStringValue" {
-		return nil, errors.New("invalid action type")
-	}
-	if request.Key == "" {
-		return nil, errors.New("key cannot be empty")
-	}
-	if request.Value == "" {
-		return nil, errors.New("value cannot be empty")
-	}
-	var result types.Message
+func HandleSetStringValueAction(request *gomsg.Message, user *types.User) *gomsg.Message {
+	var result gomsg.Message
 	result.Type = "actionResult"
-
 	result.From = "archivist"
+	result.Meta = request.Meta
+	result.Result = &gomsg.ActionResult{}
 
-	type Arguments struct {
-		Result  string `json:"result"`
-		Message string `json:"message"`
+	if request.Type != "setStringValue" {
+		result.Result.Status = "failure"
+		result.Result.Message = "invalid message type"
+		return &result
+	}
+	if request.Parameters == nil {
+		result.Result.Status = "failure"
+		result.Result.Message = "missing parameters"
+		return &result
+	}
+	if request.Parameters.RecordKey == "" {
+		result.Result.Status = "failure"
+		result.Result.Message = "missing parameter record_key"
+		return &result
+	}
+	if request.Parameters.StringValue == nil {
+		result.Result.Status = "failure"
+		result.Result.Message = "missing parameter string_value"
+		return &result
 	}
 
-	body := types.ActionBody[Arguments]{
-		Meta: request.Meta,
-		Arguments: Arguments{
-			Result:  "success",
-			Message: "string value set successfully",
-		},
-	}
-	bodyStr, err := json.Marshal(body)
+	// check if record exists
+
+	recordKey := request.Parameters.RecordKey
+	data := request.Parameters.StringValue
+
+	record, err := db.FindRecord("user_id = ? AND name = ?", user.Id, recordKey)
+
 	if err != nil {
-		return nil, err
+		result.Result.Status = "failure"
+		result.Result.Message = "error finding record"
+		return &result
 	}
-	result.Body = string(bodyStr)
-	return &result, nil
+
+	if record == nil {
+		record = &types.Record{
+			Id:        uuid.New(),
+			UserId:    user.Id,
+			Network:   user.Network,
+			Type:      types.RecordTypeString,
+			Name:      recordKey,
+			Data:      *data,
+			ExpiresAt: nil,
+			CreateAt:  time.Now(),
+			UpdatedAt: time.Now(),
+		}
+		db.InsertRecord(record)
+	} else {
+		record.Data = *request.Parameters.StringValue
+		record.UpdatedAt = time.Now()
+		db.UpdateRecord(record)
+	}
+
+	result.Result.Status = "success"
+	result.Result.Message = "string value updated successfully"
+
+	return &result
 }

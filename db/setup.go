@@ -19,6 +19,7 @@ var DB *gorm.DB
 func SetupDatabase() {
 	DB = initGormConnection()
 	DB.AutoMigrate(types.User{})
+	DB.AutoMigrate(types.Record{})
 }
 
 // generate connection string from  environment variables

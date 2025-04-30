@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"salimon/archivist/actions"
 	"salimon/archivist/helpers"
+	"salimon/archivist/types"
 
 	"github.com/labstack/echo/v4"
 	"github.com/salimon-dev/gomsg"
@@ -24,43 +26,27 @@ func InteractHandler(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, errs)
 	}
 
-	// if err := ctx.Bind(payload); err != nil {
-	// 	return echo.NewHTTPError(http.StatusBadGateway, err.Error())
-	// }
+	actionMessages := gomsg.ExtractUnresolvedActionMessages(&schema.Data)
 
-	// // validation errors
-	// vError, err := middlewares.ValidatePayload(*payload)
-	// if err != nil {
-	// 	return echo.NewHTTPError(http.StatusBadGateway, err.Error())
-	// }
-	// if vError != nil {
-	// 	return ctx.JSON(http.StatusBadRequest, vError)
-	// }
+	if actionMessages == nil || len(actionMessages) == 0 {
+		return ctx.JSON(http.StatusOK, gomsg.InteractionSchema{
+			Data: []gomsg.Message{},
+		})
+	}
 
-	// calls, err := helpers.ExtractCalls(payload)
+	data := make([]gomsg.Message, len(actionMessages))
 
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return helpers.InternalError(ctx)
-	// }
+	user := ctx.Get("user").(*types.User)
 
-	// results := make([]types.Message, len(calls))
-	// for index, call := range calls {
-	// 	switch call.Type {
-	// 	case "setStringValue":
-	// 		result, err := actions.HandleSetStringValueAction(call)
-	// 		if err != nil {
-	// 			return helpers.InternalError(ctx)
-	// 		}
-	// 		results[index] = *result
-	// 		break
-	// 	}
-	// }
+	for index, action := range actionMessages {
+		switch action.Type {
+		case "setStringValue":
+			data[index] = *actions.HandleSetStringValueAction(action, user)
+		case "getStringValue":
+			data[index] = *actions.HandleGetStringValueAction(action, user)
+		}
+	}
 
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return helpers.InternalError(ctx)
-	// }
-
-	return ctx.JSON(http.StatusOK, schema)
+	result := gomsg.InteractionSchema{Data: data}
+	return ctx.JSON(http.StatusOK, result)
 }

@@ -29,8 +29,9 @@ type Record struct {
 	Network   string     `json:"network" gorm:"size:32;not null"`
 	UserId    uuid.UUID  `json:"user_id" gorm:"type:uuid"`
 	Type      RecordType `json:"type" gorm:"type:numeric"`
+	Name      string     `json:"name" gorm:"size:64"`
 	Data      string     `json:"data" gorm:"type:text"`
-	ExpiresAt time.Time  `json:"expires_at" gorm:"type:TIMESTAMP WITH TIME ZONE"`
+	ExpiresAt *time.Time `json:"expires_at,omitempty" gorm:"type:TIMESTAMP WITH TIME ZONE"`
 	CreateAt  time.Time  `json:"created_at" gorm:"type:TIMESTAMP WITH TIME ZONE"`
 	UpdatedAt time.Time  `json:"updated_at" gorm:"type:TIMESTAMP WITH TIME ZONE"`
 }
