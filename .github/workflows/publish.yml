@@ -31,11 +31,11 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             pitronumdev/archivist:${{ github.ref == 'refs/heads/main' && 'latest' || 'dev' }}
-      # - name: Rollout
-      #   uses: appleboy/ssh-action@master
-      #   with:
-      #     host: ${{ secrets.CLUSTER_HOST }}
-      #     username: ${{ secrets.CLUSTER_USERNAME }}
-      #     key: ${{ secrets.CLUSTER_SSH_KEY }}
-      #     port: 22
-      #     script: kubectl rollout restart deployment/${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}-archivist
+      - name: Rollout
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.CLUSTER_HOST }}
+          username: ${{ secrets.CLUSTER_USERNAME }}
+          key: ${{ secrets.CLUSTER_SSH_KEY }}
+          port: 22
+          script: kubectl rollout restart deployment/${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}-archivist
