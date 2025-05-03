@@ -26,7 +26,7 @@ func HandleSetStringValueAction(request *gomsg.Message, user *types.User) *gomsg
 		result.Result.Message = "missing parameters"
 		return &result
 	}
-	if request.Parameters.RecordKey == "" {
+	if request.Parameters.RecordKey == nil {
 		result.Result.Status = "failure"
 		result.Result.Message = "missing parameter record_key"
 		return &result
@@ -56,7 +56,7 @@ func HandleSetStringValueAction(request *gomsg.Message, user *types.User) *gomsg
 			UserId:    user.Id,
 			Network:   user.Network,
 			Type:      types.RecordTypeString,
-			Name:      recordKey,
+			Name:      *recordKey,
 			Data:      *data,
 			ExpiresAt: nil,
 			CreateAt:  time.Now(),

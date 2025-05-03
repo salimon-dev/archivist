@@ -24,7 +24,7 @@ func HandleGetStringValueAction(request *gomsg.Message, user *types.User) *gomsg
 		result.Result.Message = "missing parameters"
 		return &result
 	}
-	if request.Parameters.RecordKey == "" {
+	if request.Parameters.RecordKey == nil {
 		result.Result.Status = "failure"
 		result.Result.Message = "missing parameter record_key"
 		return &result
